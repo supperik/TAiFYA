@@ -9,4 +9,10 @@ moore = MooreMachine.from_file(input_file_moore)
 print(moore)
 print(mealy)
 
-mealy.draw_mealy_machine()
+moore_data = mealy.convert_to_moore_machine()
+moore = MooreMachine.from_dict(moore_data)
+print(moore)
+
+mealy_data = moore.convert_to_mealy_machine()
+mealy = MealyMachine.from_dict(mealy_data)
+print(mealy)
