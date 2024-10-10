@@ -1,5 +1,6 @@
 import json
 import networkx as nx
+import matplotlib.pyplot as plt
 
 
 class MealyMachine:
@@ -88,4 +89,24 @@ class MealyMachine:
             mealy_json_file.write(mealy_machine_json_data)
 
     def draw_mealy_machine(self):
-        pass
+        G = nx.DiGraph(directed=True)
+
+        G.add_nodes_from(self.mealy_machine_data.keys())
+
+        state_transition_pairs = []
+        state_transition_pairs_with_input_output_signals = {}
+        for state, transitions in self.mealy_machine_data.items():
+            for i in range(len(transitions)):
+                state_transition_pairs.append((state, transitions[i].split('/')[0]))
+                state_transition_pairs_with_input_output_signals[state_transition_pairs[-1]] = f"x{i + 1}/{transitions[i].split('/')[1]}"
+
+        G.add_edges_from(state_transition_pairs)
+
+        pos = nx.random_layout(G)
+        nx.draw(G, pos, with_labels=True)
+        nx.draw_networkx_edge_labels(
+            G, pos,
+            edge_labels=state_transition_pairs_with_input_output_signals,
+            font_color='red'
+        )
+        plt.show()
