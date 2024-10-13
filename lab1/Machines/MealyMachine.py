@@ -56,6 +56,15 @@ class MealyMachine:
                 all_transitions_mealy.append(transition)
         all_transitions_mealy = list(set(all_transitions_mealy))
         all_transitions_mealy.sort()
+        print(all_transitions_mealy)
+
+        temp_transitions_list = []
+        for transition in all_transitions_mealy:
+            temp_transitions_list.append(transition.split('/')[0])
+
+        for state_mealy in self.mealy_machine_data.keys():
+            if state_mealy not in temp_transitions_list:
+                all_transitions_mealy.insert(0, f'{state_mealy}/-')
 
         states_moore = []
         for i in range(len(list(set(all_transitions_mealy)))):
@@ -81,6 +90,7 @@ class MealyMachine:
 
             moore_machine_data[state_moore].append(state_moore_equal_mealy_transitions)
             moore_machine_data[state_moore].append(out_signals[states_moore.index(state_moore)])
+
         return moore_machine_data
 
     def serialize_mealy_machine(self, mealy_machine_json_filepath: str = 'mealy_machine.json'):
@@ -102,7 +112,7 @@ class MealyMachine:
 
         G.add_edges_from(state_transition_pairs)
 
-        pos = nx.random_layout(G)
+        pos = nx.circular_layout(G)
         nx.draw(G, pos, with_labels=True)
         nx.draw_networkx_edge_labels(
             G, pos,

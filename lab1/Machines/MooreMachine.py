@@ -38,7 +38,7 @@ class MooreMachine:
 
     def convert_to_mealy_machine(self):
         mealy_machine_data = {}
-
+        print(self.moore_machine_data)
         for state_moore, transitions_and_out_signals in self.moore_machine_data.items():
             transitions, current_signal = transitions_and_out_signals
             new_transitions = []
@@ -46,7 +46,7 @@ class MooreMachine:
             for state in transitions:
                 signal = self.moore_machine_data[state][1]
                 new_transitions.append(f's{state[1:]}/{signal}')  # TODO менять символ
-
+            state_moore = 's' + state_moore[1:]
             mealy_machine_data[state_moore] = new_transitions
         return mealy_machine_data
 
@@ -73,7 +73,7 @@ class MooreMachine:
         G.add_nodes_from(moore_states_and_output_signal)
         G.add_edges_from(state_transition_pairs)
 
-        pos = nx.random_layout(G)
+        pos = nx.circular_layout(G)
 
         nx.draw(G, pos, with_labels=True)
         nx.draw_networkx_edge_labels(
