@@ -1,6 +1,7 @@
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
+from pyvis.network import Network
 
 
 class MooreMachine:
@@ -69,6 +70,7 @@ class MooreMachine:
                     state_transition_pairs[-1]] = f"x{i + 1}"
 
         G = nx.DiGraph(directed=True)
+        net = Network(directed=True)
         G.add_nodes_from(moore_states_and_output_signal)
         G.add_edges_from(state_transition_pairs)
 
@@ -80,4 +82,5 @@ class MooreMachine:
             edge_labels=state_transition_pairs_with_input_output_signals,
             font_color='red'
         )
-        plt.show()
+        net.from_nx(G)
+        net.show(name="graph1.html")

@@ -1,6 +1,7 @@
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
+from pyvis.network import Network
 
 
 class MealyMachine:
@@ -99,6 +100,7 @@ class MealyMachine:
 
     def draw_mealy_machine(self):
         G = nx.DiGraph(directed=True)
+        net = Network(directed=True)
 
         G.add_nodes_from(self.mealy_machine_data.keys())
 
@@ -118,4 +120,5 @@ class MealyMachine:
             edge_labels=state_transition_pairs_with_input_output_signals,
             font_color='red'
         )
-        plt.show()
+        net.from_nx(G)
+        net.show(name="graph.html")
