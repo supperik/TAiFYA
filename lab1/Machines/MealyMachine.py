@@ -56,7 +56,6 @@ class MealyMachine:
                 all_transitions_mealy.append(transition)
         all_transitions_mealy = list(set(all_transitions_mealy))
         all_transitions_mealy.sort()
-        print(all_transitions_mealy)
 
         temp_transitions_list = []
         for transition in all_transitions_mealy:

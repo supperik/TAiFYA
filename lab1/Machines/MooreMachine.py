@@ -38,7 +38,6 @@ class MooreMachine:
 
     def convert_to_mealy_machine(self):
         mealy_machine_data = {}
-        print(self.moore_machine_data)
         for state_moore, transitions_and_out_signals in self.moore_machine_data.items():
             transitions, current_signal = transitions_and_out_signals
             new_transitions = []
