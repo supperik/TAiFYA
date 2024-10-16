@@ -19,7 +19,7 @@ class MooreMachine:
             for line in lines[2:]:
                 transitions_moore += [[item.rstrip() for item in line.split(';')[1:]]]
 
-            states_moore_has_transitions_and_out_signals = {                        # TODO Переписать по человечески
+            states_moore_has_transitions_and_out_signals = {
                 states_moore[i]: [
                     [transitions_moore[j][i] for j in range(len(transitions_moore))],
                     out_signals[i]]
@@ -45,7 +45,7 @@ class MooreMachine:
 
             for state in transitions:
                 signal = self.moore_machine_data[state][1]
-                new_transitions.append(f's{state[1:]}/{signal}')  # TODO менять символ
+                new_transitions.append(f's{state[1:]}/{signal}')
             state_moore = 's' + state_moore[1:]
             mealy_machine_data[state_moore] = new_transitions
         return mealy_machine_data
@@ -55,32 +55,91 @@ class MooreMachine:
         with open(moore_machine_json_filepath, 'w') as moore_json_file:
             moore_json_file.write(moore_machine_json_data)
 
+    def minimize_moore_machine(self):
+        groups = {}
+        for state, (transitions, output) in self.moore_machine_data.items():
+            if output not in groups:
+                groups[output] = []
+            groups[output].append(state)
+
+        partition = list(groups.values())
+
+        def get_group(group_state, group_partition):
+            for i, enum_group in enumerate(group_partition):
+                if group_state in enum_group:
+                    return i
+            return -1  # На случай если состояние не найдено
+
+        stabilized = False
+        while not stabilized:
+            new_partition = []
+            stabilized = True
+
+            for group in partition:
+                subgroups = {}
+
+                for state in group:
+                    signature = tuple(get_group(target, partition) for target in self.moore_machine_data[state][0])
+                    if signature not in subgroups:
+                        subgroups[signature] = []
+                    subgroups[signature].append(state)
+
+                if len(subgroups) > 1:
+                    stabilized = False
+
+                new_partition.extend(subgroups.values())
+
+            partition = new_partition
+
+        minimized_machine = {}
+        for group in partition:
+            representative = group[0]
+            transitions = [get_group(f"{target}", partition) for target in self.moore_machine_data[representative][0]]
+            output = self.moore_machine_data[representative][1]
+            minimized_machine[f"q{partition.index(group)}"] = [[f'q{transition}' for transition in transitions], output]
+
+        return minimized_machine
+
     def __str__(self):
         return json.dumps(self.moore_machine_data)
 
-    def draw_moore_machine(self):
+    def draw_moore_machine(self, output_filename: str):
         state_transition_pairs = []
         moore_states_and_output_signal = []
         state_transition_pairs_with_input_output_signals = {}
+
         for state, transitions_and_output_signal in self.moore_machine_data.items():
             moore_states_and_output_signal.append(f'{state}/{transitions_and_output_signal[1]}')
             for i in range(len(transitions_and_output_signal[0])):
-                state_transition_pairs.append((f'{state}/{transitions_and_output_signal[1]}', f'{transitions_and_output_signal[0][i]}/{self.moore_machine_data[transitions_and_output_signal[0][i]][1]}'))
+                transition_target = transitions_and_output_signal[0][i]
+                state_transition_pairs.append(
+                    (f'{state}/{transitions_and_output_signal[1]}',
+                     f'{transition_target}/{self.moore_machine_data[transition_target][1]}')
+                )
                 state_transition_pairs_with_input_output_signals[
                     state_transition_pairs[-1]] = f"x{i + 1}"
 
-        G = nx.DiGraph(directed=True)
         net = Network(directed=True)
-        G.add_nodes_from(moore_states_and_output_signal)
-        G.add_edges_from(state_transition_pairs)
 
-        pos = nx.circular_layout(G)
+        for state in moore_states_and_output_signal:
+            net.add_node(state, label=state)
 
-        nx.draw(G, pos, with_labels=True)
-        nx.draw_networkx_edge_labels(
-            G, pos,
-            edge_labels=state_transition_pairs_with_input_output_signals,
-            font_color='red'
-        )
-        net.from_nx(G)
-        net.show(name="graph1.html")
+        for (src, dst) in state_transition_pairs:
+            label = state_transition_pairs_with_input_output_signals[(src, dst)]
+            net.add_edge(src, dst, label=label)
+
+        net.set_options("""
+                var options = {
+                  "edges": {
+                    "color": {
+                      "inherit": true
+                    },
+                    "smooth": false
+                  },
+                  "physics": {
+                    "enabled": true
+                  }
+                }
+                """)
+
+        net.save_graph(output_filename)
