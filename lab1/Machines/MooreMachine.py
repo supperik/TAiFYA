@@ -8,6 +8,25 @@ class MooreMachine:
     def __init__(self, moore_machine_data):
         self.moore_machine_data = moore_machine_data
 
+    def __str__(self):
+        col_width = max(len(state) for state in self.moore_machine.keys()) + 2
+        trans_width = max(len(transition) for transitions in self.moore_machine_data.values() for transition in
+                          transitions[0]) + 2
+        output_width = max(len(output) for _, output in self.moore_machine_data.values()) + 2
+
+        input_symbols = [f'x{i + 1}' for i in range(len(next(iter(self.moore_machine_data.values()))[0]))]
+        header = "State".ljust(col_width) + "Output".center(output_width) + ''.join(
+            input_symbol.center(trans_width) for input_symbol in input_symbols)
+        table = header + "\n" + "-" * len(header) + "\n"
+
+        for state, (transitions, output_signal) in self.moore_machine_data.items():
+            row = state.ljust(col_width)
+            row += output_signal.center(output_width)
+            row += ''.join(transition.center(trans_width) for transition in transitions)
+            table += row + "\n"
+
+        return table
+
     @classmethod
     def from_file(cls, filename: str):
         with open(filename, "r") as in_file:
@@ -68,7 +87,7 @@ class MooreMachine:
             for i, enum_group in enumerate(group_partition):
                 if group_state in enum_group:
                     return i
-            return -1  # На случай если состояние не найдено
+            return -1  # На случай если состояние не найдено (Ахуею если прокнет) UPD: Ахуел
 
         stabilized = False
         while not stabilized:
@@ -99,9 +118,6 @@ class MooreMachine:
             minimized_machine[f"q{partition.index(group)}"] = [[f'q{transition}' for transition in transitions], output]
 
         return minimized_machine
-
-    def __str__(self):
-        return json.dumps(self.moore_machine_data)
 
     def draw_moore_machine(self, output_filename: str):
         state_transition_pairs = []

@@ -5,11 +5,24 @@ from pyvis.network import Network
 
 
 class MealyMachine:
-    def __init__(self, mealy_machine_data):  # создание объекта из словаря типа {state: [transitions, out_signal]}
+    def __init__(self, mealy_machine_data):  # Создание объекта из словаря типа {state: [transitions, out_signal]}
         self.mealy_machine_data = mealy_machine_data
 
     def __str__(self):
-        return json.dumps(self.mealy_machine_data)
+        col_width = max(len(state) for state in self.mealy_machine_data.keys()) + 2
+        trans_width = (max(len(transition) for transitions in self.mealy_machine_data.values()
+                           for transition in transitions) + 2)
+
+        input_symbols = [f'x{i + 1}' for i in range(len(next(iter(self.mealy_machine_data.values()))))]
+        header = "State".ljust(col_width) + ''.join(input_symbol.center(trans_width) for input_symbol in input_symbols)
+        table = header + "\n" + "-" * len(header) + "\n"
+
+        for state, transitions in self.mealy_machine_data.items():
+            row = state.ljust(col_width)
+            row += ''.join(transition.center(trans_width) for transition in transitions)
+            table += row + "\n"
+
+        return table
 
     # Перегрузка конструктора, создание объекта путем чтения файла с данными автомата Мили
     @classmethod
@@ -98,27 +111,101 @@ class MealyMachine:
         with open(mealy_machine_json_filepath, 'w') as mealy_json_file:
             mealy_json_file.write(mealy_machine_json_data)
 
-    def draw_mealy_machine(self):
-        G = nx.DiGraph(directed=True)
-        net = Network(directed=True)
+    def minimize_mealy_machine(self):
+        partition = []
+        for state, transitions in self.mealy_machine_data.items():
+            output_signals = tuple(transition.split('/')[1] for transition in transitions)
+            partition.append((state, output_signals))
 
-        G.add_nodes_from(self.mealy_machine_data.keys())
+        groups = {}
+        for state, outputs in partition:
+            if outputs not in groups:
+                groups[outputs] = []
+            groups[outputs].append(state)
 
+        partition = list(groups.values())
+
+        stabilized = False
+        while not stabilized:
+            stabilized = True
+            new_partition = []
+
+            for group in partition:
+                subgroups = {}
+
+                for state in group:
+                    signature = tuple(
+                        next((i for i, group in enumerate(partition) if transition.split('/')[0] in group), -1)
+                        for transition in self.mealy_machine_data[state]
+                    )
+
+                    if signature not in subgroups:
+                        subgroups[signature] = []
+                    subgroups[signature].append(state)
+
+                if len(subgroups) > 1:
+                    stabilized = False
+
+                new_partition.extend(subgroups.values())
+            partition = new_partition
+
+        state_mapping = {state: f's{index}' for index, group in enumerate(partition) for state in group}
+        minimized_machine = {}
+
+        for group in partition:
+            representative = group[0]
+            new_transitions = []
+
+            for transition in self.mealy_machine_data[representative]:
+                next_state, output_signal = transition.split('/')
+                new_transitions.append(f"{state_mapping[next_state]}/{output_signal}")
+
+            minimized_machine[state_mapping[representative]] = new_transitions
+
+        return minimized_machine
+
+    def draw_mealy_machine(self, output_filename: str):
         state_transition_pairs = []
         state_transition_pairs_with_input_output_signals = {}
+
+        # Создание списка состояний и переходов
         for state, transitions in self.mealy_machine_data.items():
             for i in range(len(transitions)):
-                state_transition_pairs.append((state, transitions[i].split('/')[0]))
-                state_transition_pairs_with_input_output_signals[state_transition_pairs[-1]] = f"x{i + 1}/{transitions[i].split('/')[1]}"
+                # Получаем целевое состояние и выход
+                target_state = transitions[i].split('/')[0]
+                output_signal = transitions[i].split('/')[1]
 
-        G.add_edges_from(state_transition_pairs)
+                # Сохраняем пары состояний и переходы
+                state_transition_pairs.append((state, target_state))
+                state_transition_pairs_with_input_output_signals[
+                    state_transition_pairs[-1]] = f"x{i + 1}/{output_signal}"
 
-        pos = nx.circular_layout(G)
-        nx.draw(G, pos, with_labels=True)
-        nx.draw_networkx_edge_labels(
-            G, pos,
-            edge_labels=state_transition_pairs_with_input_output_signals,
-            font_color='red'
-        )
-        net.from_nx(G)
-        net.show(name="graph.html")
+        # Создание объекта Pyvis Network
+        net = Network(directed=True)
+
+        # Добавляем узлы
+        for state in self.mealy_machine_data.keys():
+            net.add_node(state, label=state)
+
+        # Добавляем ребра с метками (входы и выходы)
+        for (src, dst) in state_transition_pairs:
+            label = state_transition_pairs_with_input_output_signals[(src, dst)]
+            net.add_edge(src, dst, label=label)
+
+        # Настройка и сохранение графа
+        net.set_options("""
+            var options = {
+              "edges": {
+                "color": {
+                  "inherit": true
+                },
+                "smooth": false
+              },
+              "physics": {
+                "enabled": true
+              }
+            }
+            """)
+
+        # Сохраняем граф в HTML файл
+        net.save_graph(output_filename)
