@@ -9,7 +9,7 @@ class MooreMachine:
         self.moore_machine_data = moore_machine_data
 
     def __str__(self):
-        col_width = max(len(state) for state in self.moore_machine.keys()) + 2
+        col_width = max(len(state) for state in self.moore_machine_data.keys()) + 2
         trans_width = max(len(transition) for transitions in self.moore_machine_data.values() for transition in
                           transitions[0]) + 2
         output_width = max(len(output) for _, output in self.moore_machine_data.values()) + 2
@@ -82,6 +82,7 @@ class MooreMachine:
             groups[output].append(state)
 
         partition = list(groups.values())
+        print(partition)
 
         def get_group(group_state, group_partition):
             for i, enum_group in enumerate(group_partition):
@@ -103,6 +104,7 @@ class MooreMachine:
                         subgroups[signature] = []
                     subgroups[signature].append(state)
 
+                print(subgroups)
                 if len(subgroups) > 1:
                     stabilized = False
 
