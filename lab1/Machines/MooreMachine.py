@@ -82,7 +82,6 @@ class MooreMachine:
             groups[output].append(state)
 
         partition = list(groups.values())
-        print(partition)
 
         def get_group(group_state, group_partition):
             for i, enum_group in enumerate(group_partition):
@@ -90,10 +89,10 @@ class MooreMachine:
                     return i
             return -1  # На случай если состояние не найдено (Ахуею если прокнет) UPD: Ахуел
 
-        stabilized = False
-        while not stabilized:
+        minimized = False
+        while not minimized:
             new_partition = []
-            stabilized = True
+            minimized = True
 
             for group in partition:
                 subgroups = {}
@@ -104,9 +103,8 @@ class MooreMachine:
                         subgroups[signature] = []
                     subgroups[signature].append(state)
 
-                print(subgroups)
                 if len(subgroups) > 1:
-                    stabilized = False
+                    minimized = False
 
                 new_partition.extend(subgroups.values())
 
