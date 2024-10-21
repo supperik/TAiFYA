@@ -125,9 +125,9 @@ class MealyMachine:
 
         partition = list(groups.values())
 
-        stabilized = False
-        while not stabilized:
-            stabilized = True
+        minimized = False
+        while not minimized:
+            minimized = True
             new_partition = []
 
             for group in partition:
@@ -144,7 +144,7 @@ class MealyMachine:
                     subgroups[signature].append(state)
 
                 if len(subgroups) > 1:
-                    stabilized = False
+                    minimized = False
 
                 new_partition.extend(subgroups.values())
             partition = new_partition
