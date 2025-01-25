@@ -86,6 +86,10 @@ class DFA:
     def __str__(self):
         return self.to_table()
 
+    def save_to_file(self, filename):
+        with open(filename, 'w') as file:
+            file.write(self.to_table())
+
     def draw_dfa(self, output_filename):
         # Создаем объект для визуализации графа
         net = Network(directed=True)

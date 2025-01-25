@@ -88,7 +88,8 @@ class NFA:
                     if transition.strip() != '-':
                         for item in transition.split(','):
                             item = item.strip()
-                            transitions.setdefault((states[i], signal), set()).add(item)
+                            if item != '':
+                                transitions.setdefault((states[i], signal), set()).add(item)
 
         return cls(states, inputs, transitions, start_state)
 
@@ -120,14 +121,17 @@ class NFA:
 
         # Добавляем узлы для состояний
         for state in self.states:
+            # print(state)
             if state == self.start_state:  # Выделяем стартовое состояние, например, красным
                 net.add_node(state, label=state, color="red")  # Цвет для стартового состояния
             else:
                 net.add_node(state, label=state)
 
+        print(self.transitions.items())
         # Добавляем рёбра (переходы) между состояниями
         for (src, symbol), dst_set in self.transitions.items():
             for dst in dst_set:
+                # print()
                 net.add_edge(src, dst, label=symbol)  # Переход подписан символом
 
         # Дополнительные опции для улучшения визуализации
@@ -136,11 +140,7 @@ class NFA:
                             "edges": {
                                 "color": {
                                     "inherit": true
-                                },
-                                "smooth": false
-                            },
-                            "physics": {
-                                "enabled": true
+                                }
                             }
                         }
                     """)

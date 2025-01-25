@@ -87,7 +87,7 @@ class MooreMachine:
             for i, enum_group in enumerate(group_partition):
                 if group_state in enum_group:
                     return i
-            return -1  # На случай если состояние не найдено (Ахуею если прокнет) UPD: Ахуел
+            return -1
 
         minimized = False
         while not minimized:
