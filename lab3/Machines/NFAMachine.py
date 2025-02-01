@@ -3,11 +3,25 @@ from pyvis.network import Network
 
 
 class NFA:
-    def __init__(self, states, inputs, transitions, start_state):
-        self.states = states
-        self.inputs = inputs
-        self.transitions = transitions
-        self.start_state = start_state
+    def __init__(self, states, inputs, transitions, start_state, accept_states):
+        self.states = states  # Все состояния NFA
+        self.inputs = inputs  # Алфавит NFA
+        self.transitions = transitions  # Таблица переходов NFA
+        self.start_state = start_state  # Начальное состояние
+        self.accept_states = accept_states  #self._find_accept_states()  # Автоматически определяем конечные состояния
+
+    def _find_accept_states(self):
+        """
+        Определяет принимающие состояния:
+        Состояния, из которых возможен ε-переход в конечное состояние или пустое множество.
+        """
+        accept_states = set()
+        for state in self.states:
+            if (state, '') in self.transitions:  # Проверяем наличие ε-перехода
+                reachable_states = self.transitions[(state, '')]
+                if not reachable_states:  # Если ε-переход ведёт в пустое множество
+                    accept_states.add(state)
+        return accept_states
 
     @classmethod
     def from_grammar(cls, grammar):
@@ -73,15 +87,21 @@ class NFA:
 
     @classmethod
     def from_file(cls, filename: str):
-        with open(filename, "r") as in_file:
+        with open(filename, "r", encoding="utf-8") as in_file:
             lines = in_file.readlines()
 
-            states = [item.rstrip() for item in lines[0].split(';')[1:]]
+            # Парсим состояния
+            outputs = [item.rstrip() for item in lines[0].split(';')[1:]]
+            states = [item.rstrip() for item in lines[1].split(';')[1:]]
             start_state = states[0]
+
+            # Парсим входные символы
             inputs = set()
 
+            # Парсим переходы
             transitions = {}
-            for line in lines[1:]:
+            accept_states = []
+            for line in lines[2:]:
                 signal = line.split(';')[0].strip()
                 inputs.add(signal)
                 for i, transition in enumerate(line.split(';')[1:]):
@@ -91,10 +111,13 @@ class NFA:
                             if item != '':
                                 transitions.setdefault((states[i], signal), set()).add(item)
 
-        return cls(states, inputs, transitions, start_state)
+            for i in range(len(outputs)):
+                if outputs[i] == 'F':
+                    accept_states.append(states[i])
+        return cls(states, inputs, transitions, start_state, accept_states)
 
     def to_table(self):
-        header = [' '] + self.states  # Заголовок таблицы (состояния)
+        header = [''] + self.states  # Заголовок таблицы (состояния)
         rows = []
         temp_inputs = sorted(self.inputs)
 
@@ -107,7 +130,9 @@ class NFA:
                 row.append(','.join(sorted(next_states)) if next_states else '-')
             rows.append(row)
 
-            # Формируем таблицу как строку
+
+
+        # Формируем таблицу как строку
         table = [header] + rows
         table_str = '\n'.join([';'.join(cell for cell in row) for row in table])
         return table_str
@@ -127,7 +152,6 @@ class NFA:
             else:
                 net.add_node(state, label=state)
 
-        print(self.transitions.items())
         # Добавляем рёбра (переходы) между состояниями
         for (src, symbol), dst_set in self.transitions.items():
             for dst in dst_set:

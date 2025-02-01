@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "green", "id": "q4(end)", "label": "q4(end)", "shape": "dot"}, {"color": "red", "id": "q0", "label": "q0", "shape": "dot"}, {"color": "green", "id": "q2(end)", "label": "q2(end)", "shape": "dot"}, {"color": "#97c2fc", "id": "q3", "label": "q3", "shape": "dot"}, {"color": "#97c2fc", "id": "q1", "label": "q1", "shape": "dot"}, {"color": "#97c2fc", "id": "q5", "label": "q5", "shape": "dot"}]);
-                  edges = new vis.DataSet([{"arrows": "to", "from": "q0", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q0", "label": "b", "to": "q2(end)"}, {"arrows": "to", "from": "q2(end)", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q2(end)", "label": "b", "to": "q2(end)"}, {"arrows": "to", "from": "q1", "label": "a", "to": "q3"}, {"arrows": "to", "from": "q1", "label": "b", "to": "q4(end)"}, {"arrows": "to", "from": "q4(end)", "label": "a", "to": "q5"}, {"arrows": "to", "from": "q4(end)", "label": "b", "to": "q2(end)"}, {"arrows": "to", "from": "q5", "label": "a", "to": "q5"}, {"arrows": "to", "from": "q5", "label": "b", "to": "q4(end)"}, {"arrows": "to", "from": "q3", "label": "a", "to": "q5"}, {"arrows": "to", "from": "q3", "label": "b", "to": "q2(end)"}]);
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "q5", "label": "q5", "shape": "dot"}, {"color": "#97c2fc", "id": "q9", "label": "q9", "shape": "dot"}, {"color": "#97c2fc", "id": "q6", "label": "q6", "shape": "dot"}, {"color": "red", "id": "q0", "label": "q0", "shape": "dot"}, {"color": "#97c2fc", "id": "q8", "label": "q8", "shape": "dot"}, {"color": "#97c2fc", "id": "q1", "label": "q1", "shape": "dot"}, {"color": "#97c2fc", "id": "q4", "label": "q4", "shape": "dot"}, {"color": "#97c2fc", "id": "q2", "label": "q2", "shape": "dot"}, {"color": "#97c2fc", "id": "q3", "label": "q3", "shape": "dot"}, {"color": "#97c2fc", "id": "q7", "label": "q7", "shape": "dot"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "q0", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q0", "label": "b", "to": "q2"}, {"arrows": "to", "from": "q0", "label": "c", "to": "q3"}, {"arrows": "to", "from": "q3", "label": "b", "to": "q4"}, {"arrows": "to", "from": "q3", "label": "c", "to": "q3"}, {"arrows": "to", "from": "q4", "label": "a", "to": "q5"}, {"arrows": "to", "from": "q4", "label": "b", "to": "q4"}, {"arrows": "to", "from": "q5", "label": "a", "to": "q5"}, {"arrows": "to", "from": "q2", "label": "a", "to": "q6"}, {"arrows": "to", "from": "q2", "label": "b", "to": "q2"}, {"arrows": "to", "from": "q6", "label": "a", "to": "q6"}, {"arrows": "to", "from": "q6", "label": "c", "to": "q7"}, {"arrows": "to", "from": "q7", "label": "c", "to": "q7"}, {"arrows": "to", "from": "q1", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q1", "label": "c", "to": "q8"}, {"arrows": "to", "from": "q8", "label": "b", "to": "q9"}, {"arrows": "to", "from": "q8", "label": "c", "to": "q8"}, {"arrows": "to", "from": "q9", "label": "b", "to": "q9"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
@@ -100,7 +100,7 @@
                   // adding nodes and edges to the graph
                   data = {nodes: nodes, edges: edges};
 
-                  var options = {"edges": {"color": {"inherit": true}, "smooth": false}, "physics": {"enabled": true}};
+                  var options = {"edges": {"color": {"inherit": true}, "smooth": false}};
 
                   
 

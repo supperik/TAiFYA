@@ -36,13 +36,31 @@ class MooreMachine:
 
             transitions_moore = []
             for line in lines[2:]:
+                transitions = []
+                # for item in line.split(';')[1:]:
+                #     if item != '':
+                #         transitions += [item.rstrip()]
+                # transitions_moore.append(transitions)
                 transitions_moore += [[item.rstrip() for item in line.split(';')[1:]]]
 
-            states_moore_has_transitions_and_out_signals = {
-                states_moore[i]: [
-                    [transitions_moore[j][i] for j in range(len(transitions_moore))],
-                    out_signals[i]]
-                for i in range(len(out_signals)) if len(out_signals) == len(states_moore)}
+            states_moore_has_transitions_and_out_signals = {}
+            print(out_signals)
+
+            if len(out_signals) == len(states_moore):
+                for i in range(len(out_signals)):
+                    transitions = []
+                    for j in range(len(transitions_moore)):
+                        # print(transitions_moore[j][i])
+                        if transitions_moore[j][i] != '':
+                            transitions.append(transitions_moore[j][i])
+
+                    states_moore_has_transitions_and_out_signals[states_moore[i]] = [transitions, out_signals[i]]
+
+            # states_moore_has_transitions_and_out_signals = {
+            #     states_moore[i]: [
+            #         [transitions_moore[j][i] for j in range(len(transitions_moore))],
+            #         out_signals[i]]
+            #     for i in range(len(out_signals)) if len(out_signals) == len(states_moore)}
 
         return cls(states_moore_has_transitions_and_out_signals)
 
@@ -113,7 +131,9 @@ class MooreMachine:
         minimized_machine = {}
         for group in partition:
             representative = group[0]
-            transitions = [get_group(f"{target}", partition) for target in self.moore_machine_data[representative][0]]
+            transitions = []
+            for target in self.moore_machine_data[representative][0]:
+                transitions.append(get_group(target, partition))
             output = self.moore_machine_data[representative][1]
             minimized_machine[f"s{partition.index(group)}"] = [[f's{transition}' for transition in transitions], output]
 

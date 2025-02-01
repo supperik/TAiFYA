@@ -1,4 +1,5 @@
 from pyvis.network import Network
+import re
 
 
 class DFA:
@@ -7,28 +8,43 @@ class DFA:
         self.alphabet = alphabet
         self.transitions = transitions
         self.start_state = start_state
+        self.accept_states = accept_states
 
     @classmethod
     def from_nfa(cls, nfa):
+        def epsilon_closure(state, transitions):
+            closure = {state}
+            stack = [state]
+            while stack:
+                current = stack.pop()
+                if (current, 'ε') in transitions:  # Проверяем ε-переходы
+                    for next_state in transitions[(current, 'ε')]:
+                        if next_state not in closure:
+                            closure.add(next_state)
+                            stack.append(next_state)
+            return closure
+
+        def epsilon_closure_of_set(state_set, transitions):
+            closure = set()
+            for state in state_set:
+                closure.update(epsilon_closure(state, transitions))
+            return closure
+
         dfa_states = {}
-        dfa_alphabet = sorted(nfa.inputs)
+        dfa_alphabet = sorted(set(nfa.inputs) - {'ε'})
         dfa_transitions = {}
-        dfa_start_state = frozenset([nfa.start_state])
-        if nfa.start_state == 'S':
-            final_state = 'H'
-        else:
-            final_state = 'S'
+        dfa_start_state = frozenset(
+            epsilon_closure(nfa.start_state, nfa.transitions))  # ε-замыкание стартового состояния
         dfa_accept_states = set()
 
         unprocessed_states = [dfa_start_state]
         processed_states = set()
         state_counter = 0
 
-        # Назначаем имя для стартового состояния
         dfa_states[dfa_start_state] = f"q{state_counter}"
         state_counter += 1
 
-        nfa_accept_states = {state for state in nfa.states if (state, '') in nfa.transitions}
+        nfa_accept_states = {state for state in nfa.states if state in nfa.accept_states}
 
         while unprocessed_states:
             current = unprocessed_states.pop()
@@ -37,9 +53,8 @@ class DFA:
             current_name = dfa_states[current]
             dfa_transitions[current_name] = {}
 
-            # Определяем, если хотя бы одно из подсостояний DFA является конечным состоянием NFA
             if any(state in nfa_accept_states for state in current):
-                dfa_accept_states.add(f"{current_name}(end)")  # Добавляем "(end)" к имени состояния
+                dfa_accept_states.add(current_name)
 
             for symbol in dfa_alphabet:
                 next_state = set()
@@ -47,13 +62,12 @@ class DFA:
                     if (substate, symbol) in nfa.transitions:
                         next_state.update(nfa.transitions[(substate, symbol)])
 
+                next_state = epsilon_closure_of_set(next_state, nfa.transitions)
                 next_state = frozenset(next_state)
+
                 if next_state:
                     if next_state not in dfa_states:
-                        if final_state in next_state:
-                            dfa_states[next_state] = f"q{state_counter}(end)"
-                        else:
-                            dfa_states[next_state] = f"q{state_counter}"
+                        dfa_states[next_state] = f"q{state_counter}"
                         state_counter += 1
                         unprocessed_states.append(next_state)
 
@@ -70,18 +84,36 @@ class DFA:
             accept_states=dfa_accept_states
         )
 
+    import re
+
     def to_table(self):
-        header = [" "] + sorted(self.states)
+        def extract_number(state):
+            return int(re.search(r'\d+', state).group())
+
+        sorted_states = sorted(self.states, key=extract_number)
+
+        header = [""] + sorted_states
         rows = []
 
         for symbol in self.alphabet:
             row = [symbol]
-            for state in sorted(self.states):
+            for state in sorted_states:
                 row.append(self.transitions[state].get(symbol, "-"))
             rows.append(row)
 
-        table = [header] + rows
-        return "\n".join(";".join(str(cell) for cell in row) for row in table)
+        final_row = [""]
+        for state in sorted_states:
+            if state in self.accept_states:
+                final_row.append("F")
+            else:
+                final_row.append("")
+
+        result = [";".join(final_row), ";".join(header)]
+
+        table = '\n'.join(result)
+        for row in rows:
+            table += '\n' + ';'.join(row)
+        return table
 
     def __str__(self):
         return self.to_table()
@@ -117,9 +149,6 @@ class DFA:
                         "inherit": true
                     },
                     "smooth": false
-                },
-                "physics": {
-                    "enabled": true
                 }
             }
         """)

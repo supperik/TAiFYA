@@ -11,13 +11,13 @@ input_file_moore = 'input1.txt'
 # mealy.draw_mealy_machine()
 
 moore = MooreMachine.from_file(input_file_moore)
-moore.draw_moore_machine(output_filename="moore.html")
+print(moore.moore_machine_data)
 minimized_moore_data = moore.minimize_moore_machine()
 moore.draw_minimized_moore_machine(minimized_moore_data, 'minimized_moore.html')
-print(moore)
+print(minimized_moore_data)
 
-minimized_moore = MooreMachine.from_dict(minimized_moore_data)
-minimized_moore.draw_moore_machine(output_filename="minimized_moore.html")
+# minimized_moore = MooreMachine.from_dict(minimized_moore_data)
+# minimized_moore.draw_moore_machine(output_filename="minimized_moore.html")
 
 # mealy = MealyMachine.from_file(input_file_mealy)
 # print(mealy)
